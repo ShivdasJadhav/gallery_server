@@ -14,7 +14,7 @@ mongoose
     console.log("connected with cluster:\t Gallary0");
   })
   .then(() => {
-    app.listen("https://gallary-server.vercel.app/", (req, res, next) => {
+    app.listen("5000", (req, res, next) => {
       console.log("listing on port 5000");
     });
   })
