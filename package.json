@@ -1,8 +1,7 @@
 {
   "name": "expressjs",
   "version": "1.0.0",
-  "description": "",
-  "main": "exp.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,5 +12,17 @@
     "express": "^4.18.2",
     "mongoose": "^7.0.1",
     "react-router-dom": "^6.9.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShivdasJadhav/gallary_server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ShivdasJadhav/gallary_server/issues"
+  },
+  "homepage": "https://github.com/ShivdasJadhav/gallary_server#readme",
+  "description": "",
+  "engines": {
+    "node": "v16.16.0"
   }
 }
