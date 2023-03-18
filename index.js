@@ -5,7 +5,7 @@ const app = express();
 const routes=require('./routes/Item_route');
 app.use(express.json());
 app.use(cors());
-app.use('/',routes);
+app.use('/items',routes);
 mongoose
   .connect(
     "mongodb+srv://admin:MyGallary%40Admin@gallary0.bs3rtjt.mongodb.net/?retryWrites=true&w=majority"
