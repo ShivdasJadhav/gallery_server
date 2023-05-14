@@ -6,4 +6,8 @@ router.post('/save',all_items.add_item);
 router.get('/:id',all_items.getById);
 router.post('/:id',all_items.updateItem);
 router.delete('/:id',all_items.deleteById);
+router.get('/status/:email/:type',all_items.getByStatus);
+router.get('/admin_/proposals/:type',all_items.getAllByStatus);
+router.get('/accept/:id',all_items.acceptById);
+router.get('/reject/:id',all_items.rejectById);
 module.exports = router;
