@@ -9,7 +9,7 @@ const { config } = require("dotenv");
 config();
 app.use(express.json());
 // app.use());
-app.use(cors({ credentials: true, origin: "http://localhost:3000/" }));
+app.use(cors({ credentials: true, origin: "https://dev-gallary.netlify.app/" }));
 app.use("/auth", router);
 app.use("/items", routes);
 mongoose
