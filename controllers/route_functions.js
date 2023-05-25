@@ -7,7 +7,7 @@ config();
 let key = process.env.JWT_SECRETE_KEY;
 const saveInfo = async (req, res, next) => {
   let users = null;
-  let { name, email, password } = req.body;
+  let { name, email, password,use_type} = req.body;
   try {
     users = await User.findOne({ email });
     if (users) {
@@ -22,6 +22,7 @@ const saveInfo = async (req, res, next) => {
       contact: "",
       address: "",
       about: "",
+      use_type,
       img: "https://cdn.iconscout.com/icon/free/png-512/avatar-370-456322.png",
     });
     users.save();
@@ -90,14 +91,14 @@ const verify = async (req, res, next) => {
   }
 };
 const getUser = async (req, res, next) => {
-  let email = req.params.email;
+  let email = req.body.email;
   let user = null;
   try {
     user = await User.find({ email: email }, "-password");
     if (!user) {
-      return res.status(404).json({ message: "user not found!" });
+      return res.status(200).json({ status:0,message: "user not found!" });
     }
-    return res.status(200).json({ user });
+    return res.status(200).json({ status:1, user:user[0] });
   } catch (err) {
     console.log(err);
   }
@@ -117,9 +118,40 @@ const setUser = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: "user not found!" });
     }
-    return res.status(200).json({ message: "updated Successfuly" });
+    return res.status(200).json({ message: "updated Successfuly",body:req.body.profile,user });
   } catch (err) {
     console.log(err);
+  }
+};
+const getUserData = async (req, res, next) => {
+  let artist = null;
+  let art_lover=null;
+  let orgs=null;
+  let users=null;
+  try {
+    artist = await User.find({use_type:"artist"}).countDocuments();
+    art_lover = await User.find({use_type:"art_lover"}).countDocuments();
+    orgs = await User.find({use_type:"org"}).countDocuments();
+users=await User.find();
+    return res.status(200).json({ artist,art_lover,orgs,users });
+  } catch (err) {
+    console.log(err);
+  }
+};
+const deleteUser = async (req, res, next) => {
+  let id=req.body.id;
+  let user=null;
+  try {
+    user = await User.findByIdAndRemove(id);
+  } catch (err) {
+    console.log(err);
+  }
+  if (!user) {
+    return res.status(400).json({ message: "Failed to Delete" });
+  } else {
+    return res
+      .status(200)
+      .json({ message: "user Deleted successfully!", user: user });
   }
 };
 const refresh_token = async (req, res, next) => {
@@ -156,4 +188,6 @@ exports.login = login;
 // exports.verify = verify;
 exports.getUser = getUser;
 exports.setUser = setUser;
+exports.getUserData=getUserData;
+exports.deleteUser=deleteUser;
 // exports.refresh_token = refresh_token;

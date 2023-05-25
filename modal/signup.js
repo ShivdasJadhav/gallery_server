@@ -23,6 +23,9 @@ const newUser=new Schema({
     },about:{
         type:String,
         required:false
+    },use_type:{
+        type:String,
+        required:false
     },img:{
         type:String,
         required:false
