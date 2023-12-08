@@ -1,39 +1,38 @@
 const express = require("express");
-const User = require("../modal/signup");
+const User = require("../modal/user_schema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { config } = require("dotenv");
 config();
 let key = process.env.JWT_SECRETE_KEY;
-const saveInfo = async (req, res, next) => {
-  let users = null;
-  let { name, email, password,use_type} = req.body;
+const register = async (req, res, next) => {
+  let user = null;
+  let { name, email, pass, contact, user_type } = req.body;
   try {
-    users = await User.findOne({ email });
-    if (users) {
-      return res.json({ message: "user already exists!",status:2 });
+    user = await User.findOne({ email });
+    if (user) {
+      return res.status(208).json({ message: "already exist" });
     }
-    const hash = bcrypt.hashSync(password);
-    users = await User({
+    const hash = bcrypt.hashSync(pass);
+    user = await User({
       name,
       email,
       password: hash,
-      user_type: "user",
-      contact: "",
+      isAdmin: false,
+      contact: contact,
       address: "",
       about: "",
-      use_type,
-      img: "https://cdn.iconscout.com/icon/free/png-512/avatar-370-456322.png",
+      user_type,
+      img: "",
     });
-    users.save();
+    user.save();
+    if (user) {
+      return res.status(201).json({ ...user });
+    }
   } catch (err) {
-    console.log("error to fetch data");
+    return res.status(500).json({ msg: "Server error!" });
   }
-  if (!users) {
-    res.status(500).json({ message: "failed save user",status:0 });
-    return;
-  }
-  res.status(201).json({ users,status:1 });
+  next();
 };
 const login = async (req, res, next) => {
   let user = null;
@@ -41,7 +40,7 @@ const login = async (req, res, next) => {
   try {
     user = await User.findOne({ email });
     if (!user) {
-      res.status(200).json({ message: "User not found",status:2 });
+      return res.status(204).json({ message: "User not found" });
     }
     let compare = bcrypt.compareSync(password, user.password);
     if (compare) {
@@ -59,11 +58,29 @@ const login = async (req, res, next) => {
       //   httpOnly: true,
       //   sameSite: "lax",
       // });
-      return res
-        .status(200)
-        .json({ user: user, messaged: "Login successfully", status: 1 });
+      return res.status(200).json({ ...user });
     } else {
-      return res.json({ message: "Invalid Credentials!", status: 0 });
+      return res.status(203).json({ msg: "Invalid Credentials!" });
+    }
+  } catch (err) {
+    return res.status(500).json({ msg: "Server Error !" });
+  }
+  next();
+};
+
+const sendOtp = async (req, res, next) => {
+  let user = null;
+  const { email } = req.body;
+  try {
+    user = await User.findOne({ email }, "contact");
+    if (user) {
+      return res.status(200).json({
+        contact: user.contact,
+      });
+    } else {
+      return res.status(201).json({
+        message: "user not found!",
+      });
     }
   } catch (err) {
     console.log("failed to process\t\n", err);
@@ -96,9 +113,9 @@ const getUser = async (req, res, next) => {
   try {
     user = await User.find({ email: email }, "-password");
     if (!user) {
-      return res.status(200).json({ status:0,message: "user not found!" });
+      return res.status(200).json({ status: 0, message: "user not found!" });
     }
-    return res.status(200).json({ status:1, user:user[0] });
+    return res.status(200).json({ status: 1, user: user[0] });
   } catch (err) {
     console.log(err);
   }
@@ -107,40 +124,62 @@ const setUser = async (req, res, next) => {
   let { name, email, contact, address, about, img } = req.body.profile;
   let user = null;
   try {
-    user = await User.findOneAndUpdate(email, {
-      name,
-      email,
-      contact,
-      address,
-      about,
-      img,
-    });
+    user = await User.updateOne(
+      { email: email },
+      {
+        $set: {
+          name,
+          contact,
+          address,
+          about,
+          img,
+        },
+      }
+    );
     if (!user) {
       return res.status(404).json({ message: "user not found!" });
     }
-    return res.status(200).json({ message: "updated Successfuly",body:req.body.profile,user });
+    return res.status(200).json({ message: "updated Successfuly" });
+  } catch (err) {
+    console.log(err);
+  }
+};
+const updatePass = async (req, res, next) => {
+  let { email, newPass } = req.body;
+  let user = null;
+  try {
+    const hash = bcrypt.hashSync(newPass);
+    user = await User.updateOne(
+      { email: email },
+      {
+        $set: {
+          password: hash,
+        },
+      }
+    );
+    return res.status(200).json({ message: "updated Successfuly" });
   } catch (err) {
     console.log(err);
   }
 };
 const getUserData = async (req, res, next) => {
   let artist = null;
-  let art_lover=null;
-  let orgs=null;
-  let users=null;
+  let art_lover = null;
+  let orgs = null;
+  let users = null;
   try {
-    artist = await User.find({use_type:"artist"}).countDocuments();
-    art_lover = await User.find({use_type:"art_lover"}).countDocuments();
-    orgs = await User.find({use_type:"org"}).countDocuments();
-users=await User.find();
-    return res.status(200).json({ artist,art_lover,orgs,users });
+    artist = await User.find({ use_type: "artist" }).countDocuments();
+    art_lover = await User.find({ use_type: "art_lover" }).countDocuments();
+    orgs = await User.find({ use_type: "org" }).countDocuments();
+    users = await User.find();
+    return res.status(200).json({ artist, art_lover, orgs, users });
   } catch (err) {
     console.log(err);
   }
 };
 const deleteUser = async (req, res, next) => {
-  let id=req.body.id;
-  let user=null;
+  let id = req.body.id;
+  let user = null;
   try {
     user = await User.findByIdAndRemove(id);
   } catch (err) {
@@ -183,11 +222,13 @@ const refresh_token = async (req, res, next) => {
     next();
   });
 };
-exports.saveInfo = saveInfo;
+exports.register = register;
 exports.login = login;
 // exports.verify = verify;
 exports.getUser = getUser;
 exports.setUser = setUser;
-exports.getUserData=getUserData;
-exports.deleteUser=deleteUser;
+exports.getUserData = getUserData;
+exports.deleteUser = deleteUser;
+exports.sendOtp = sendOtp;
+exports.updatePass = updatePass;
 // exports.refresh_token = refresh_token;

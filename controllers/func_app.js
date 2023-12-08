@@ -1,4 +1,4 @@
-const Item = require("../modal/Item");
+const Item = require("../modal/art_schema");
 const getAllItems = async (req, res, next) => {
   let Items;
   try {

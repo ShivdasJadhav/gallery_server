@@ -1,17 +1,21 @@
 const express = require("express");
 const {
-  saveInfo,
+  register,
   login,
   // verify,
   getUser,
   setUser,
   getUserData,
   deleteUser,
+  sendOtp,
+  updatePass
   // refresh_token,
-} = require("../controllers/route_functions");
+} = require("../controllers/func_auth");
 const router = express.Router();
-router.post("/signup", saveInfo);
+router.post("/register", register);
 router.post("/login", login);
+router.post("/updatePass", updatePass);
+router.post("/sendOtp", sendOtp);
 router.post("/getUser", getUser);
 router.post("/setUser", setUser);
 router.get("/getUserData", getUserData);

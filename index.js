@@ -2,16 +2,15 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
-const routes = require("./routes/Item_route");
-const router = require("./routes/routes");
+const App = require("./routes/app_routes");
+const Auth = require("./routes/auth_routes");
 const cookie = require("cookie-parser");
 const { config } = require("dotenv");
 config();
 app.use(express.json());
-// app.use());
-app.use(cors({ credentials: true, origin: "*" }));
-app.use("/auth", router);
-app.use("/items", routes);
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use("/auth", Auth);
+app.use("/app", App);
 mongoose
   .connect(
     `mongodb+srv://admin:${process.env.DB_PASS}@gallary0.bs3rtjt.mongodb.net/?retryWrites=true&w=majority`
