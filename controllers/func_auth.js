@@ -2,9 +2,11 @@ const express = require("express");
 const User = require("../modal/user_schema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const otpGenerator = require("otp-generator");
 const { config } = require("dotenv");
 config();
 let key = process.env.JWT_SECRETE_KEY;
+
 const register = async (req, res, next) => {
   let user = null;
   let { name, email, pass, contact, user_type } = req.body;
@@ -13,8 +15,9 @@ const register = async (req, res, next) => {
     if (user) {
       return res.status(208).json({ message: "already exist" });
     }
-    const hash = bcrypt.hashSync(pass);
-    user = await User({
+    const salt = bcrypt.genSalt(12);
+    const hash = bcrypt.hashSync(pass, salt);
+    user = await User.create({
       name,
       email,
       password: hash,
@@ -25,14 +28,17 @@ const register = async (req, res, next) => {
       user_type,
       img: "",
     });
-    user.save();
     if (user) {
-      return res.status(201).json({ ...user });
+      return res.status(201).json({
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+      });
     }
+    next();
   } catch (err) {
     return res.status(500).json({ msg: "Server error!" });
   }
-  next();
 };
 const login = async (req, res, next) => {
   let user = null;
@@ -44,80 +50,48 @@ const login = async (req, res, next) => {
     }
     let compare = bcrypt.compareSync(password, user.password);
     if (compare) {
-      // const token = jwt.sign({ id: user.id }, key, {
-      //   expiresIn: "35s",
-      // });
-      // console.log("user Id\n", user.id);
-
-      // if (req.cookies[`${user.id}`]) {
-      //   req.cookies[`${user.id}`] = "";
-      // }
-      // res.cookie(String(user.id), token, {
-      //   path: "/login",
-      //   expires: new Date(Date.now() + 1000 * 30),
-      //   httpOnly: true,
-      //   sameSite: "lax",
-      // });
-      return res.status(200).json({ ...user });
+      return res.status(200).json({
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id),
+      });
     } else {
       return res.status(203).json({ msg: "Invalid Credentials!" });
     }
   } catch (err) {
     return res.status(500).json({ msg: "Server Error !" });
   }
-  next();
-};
-
-const sendOtp = async (req, res, next) => {
-  let user = null;
-  const { email } = req.body;
-  try {
-    user = await User.findOne({ email }, "contact");
-    if (user) {
-      return res.status(200).json({
-        contact: user.contact,
-      });
-    } else {
-      return res.status(201).json({
-        message: "user not found!",
-      });
-    }
-  } catch (err) {
-    console.log("failed to process\t\n", err);
-  }
 };
 const verify = async (req, res, next) => {
-  const cookie = req.headers.cookie;
-  if (!cookie) {
-    return res.status(404).json({ message: "Session expired!" });
-  }
-  const token = cookie.split("=")[1];
-  try {
-    if (!token) {
-      return res.status(404).json({ message: "token not found!" });
-    }
-    jwt.verify(String(token), key, async (err, decoded) => {
-      if (err) {
-        return res.status(400).json({ message: "token expired" });
-      }
-      req.id = decoded.id;
+  let token = null;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+    try {
+      console.log(token);
+      let decode = jwt.verify(token, key);
+      req.user = User.findById({ _id: decode.id }, "-password");
       next();
-    });
-  } catch (err) {
-    console.log(err);
+    } catch (err) {
+      return res.status(500).json({ msg: "server Error!" });
+    }
   }
+  return res.status(203).json({ msg: "token not found!" });
 };
 const getUser = async (req, res, next) => {
-  let email = req.body.email;
+  let id = req.user.id;
   let user = null;
   try {
-    user = await User.find({ email: email }, "-password");
+    user = await User.findById({ id }, "-password");
     if (!user) {
-      return res.status(200).json({ status: 0, message: "user not found!" });
+      return res.status(204).json({ status: 0, message: "user not found!" });
     }
-    return res.status(200).json({ status: 1, user: user[0] });
+    return res.status(200).json({ ...user });
   } catch (err) {
-    console.log(err);
+    return res.status(500).json({ msg: "Server Error" });
   }
 };
 const setUser = async (req, res, next) => {
@@ -144,24 +118,7 @@ const setUser = async (req, res, next) => {
     console.log(err);
   }
 };
-const updatePass = async (req, res, next) => {
-  let { email, newPass } = req.body;
-  let user = null;
-  try {
-    const hash = bcrypt.hashSync(newPass);
-    user = await User.updateOne(
-      { email: email },
-      {
-        $set: {
-          password: hash,
-        },
-      }
-    );
-    return res.status(200).json({ message: "updated Successfuly" });
-  } catch (err) {
-    console.log(err);
-  }
-};
+
 const getUserData = async (req, res, next) => {
   let artist = null;
   let art_lover = null;
@@ -222,13 +179,76 @@ const refresh_token = async (req, res, next) => {
     next();
   });
 };
+const generateToken = (id) => {
+  return jwt.sign({ id }, key, { expiresIn: "24h" });
+};
+const localVar = async (req, res, next) => {
+  req.app.locals = {
+    OTP: null,
+    resetSession: false,
+  };
+  next();
+};
+const generateOtp = async (req, res, next) => {
+  req.app.locals.OTP = await otpGenerator.generate(6, {
+    loweCaseAlphabet: false,
+    upperCaseAlphabet: false,
+    specialSymbols: false,
+  });
+  res.status(201).json({ OTP: req.app.locals.OTP });
+  next();
+};
+const verifyOtp = async (req, res, next) => {
+  const { otp } = req.body;
+  if (paseInt(req.app.locals.OTP) === paseInt(otp)) {
+    req.app.locals.OTP = null;
+    req.app.locals.resetSession = true;
+    return res.status(200).json({ msg: "verified successfully" });
+  }
+  return res.status(203).json({ msg: "Invalid OTP" });
+};
+const resetSession = async (req, res, next) => {
+  if (req.app.locals.resetSession) {
+    req.app.locals.resetSession = false;
+    return res.status(200).json({ msg: "access permit" });
+  }
+  return res.status(203).json({ msg: "session expired" });
+};
+const updatePass = async (req, res, next) => {
+  let { email, newPass } = req.body;
+  if (!req.app.locals.resetSession) {
+    return res.status(203).json({ msg: "session expired" });
+  }
+  try {
+    let salt = bcrypt.genSalt(12);
+    const hash = bcrypt.hashSync(newPass, salt);
+    await User.updateOne(
+      { email: email },
+      {
+        $set: {
+          password: hash,
+        },
+      },
+      (err, data) => {
+        if (err) {
+          return res.status(500).json({ msg: "Failed to Update", err });
+        }
+        req.app.locals.resetSession = false;
+        return res.status(200).json({ message: "updated Successfully" });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ msg: "server Error", err });
+  }
+};
 exports.register = register;
 exports.login = login;
-// exports.verify = verify;
+exports.verify = verify;
 exports.getUser = getUser;
 exports.setUser = setUser;
 exports.getUserData = getUserData;
 exports.deleteUser = deleteUser;
-exports.sendOtp = sendOtp;
+exports.updatePass = updatePass;
+exports.localVar = localVar;
 exports.updatePass = updatePass;
 // exports.refresh_token = refresh_token;

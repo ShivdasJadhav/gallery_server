@@ -2,21 +2,20 @@ const express = require("express");
 const {
   register,
   login,
-  // verify,
+  verify,
   getUser,
   setUser,
   getUserData,
+  localVar,
   deleteUser,
-  sendOtp,
-  updatePass
+  updatePass,
   // refresh_token,
 } = require("../controllers/func_auth");
 const router = express.Router();
 router.post("/register", register);
 router.post("/login", login);
 router.post("/updatePass", updatePass);
-router.post("/sendOtp", sendOtp);
-router.post("/getUser", getUser);
+router.get("/getUser", localVar, verify, getUser);
 router.post("/setUser", setUser);
 router.get("/getUserData", getUserData);
 router.delete("/deleteUser", deleteUser);

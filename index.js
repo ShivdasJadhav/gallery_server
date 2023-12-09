@@ -4,13 +4,14 @@ const cors = require("cors");
 const app = express();
 const App = require("./routes/app_routes");
 const Auth = require("./routes/auth_routes");
-const cookie = require("cookie-parser");
+const registerMail = require("./controllers/mailer");
 const { config } = require("dotenv");
 config();
 app.use(express.json());
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use("/auth", Auth);
 app.use("/app", App);
+app.use("/mail", registerMail);
 mongoose
   .connect(
     `mongodb+srv://admin:${process.env.DB_PASS}@gallary0.bs3rtjt.mongodb.net/?retryWrites=true&w=majority`
