@@ -9,35 +9,36 @@ let key = process.env.JWT_SECRETE_KEY;
 
 const register = async (req, res, next) => {
   let user = null;
-  let { name, email, pass, contact, user_type } = req.body;
+  let { firstName, lastName, email, pass, contact, user_type } = req.body;
   try {
-    user = await User.findOne({ email });
+    user = await User.findOne({ email: email }, ["email"]);
     if (user) {
-      return res.status(208).json({ message: "already exist" });
+      return res.status(208).json({ msg: "user already exist!" });
     }
-    const salt = bcrypt.genSalt(12);
-    const hash = bcrypt.hashSync(pass, salt);
+    let salt = await bcrypt.genSalt(12);
+    let hash = await bcrypt.hash(pass, salt);
     user = await User.create({
-      name,
+      firstName,
+      lastName,
       email,
       password: hash,
       isAdmin: false,
-      contact: contact,
-      address: "",
-      about: "",
+      contact: parseInt(contact),
+      bio: "",
       user_type,
       img: "",
     });
     if (user) {
       return res.status(201).json({
         _id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
       });
     }
     next();
   } catch (err) {
-    return res.status(500).json({ msg: "Server error!" });
+    return res.status(500).json({ msg: "Failed to create user !" });
   }
 };
 const login = async (req, res, next) => {
@@ -52,7 +53,8 @@ const login = async (req, res, next) => {
     if (compare) {
       return res.status(200).json({
         _id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         token: generateToken(user._id),
       });
@@ -65,31 +67,31 @@ const login = async (req, res, next) => {
 };
 const verify = async (req, res, next) => {
   let token = null;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-    try {
-      console.log(token);
-      let decode = jwt.verify(token, key);
-      req.user = User.findById({ _id: decode.id }, "-password");
-      next();
-    } catch (err) {
-      return res.status(500).json({ msg: "server Error!" });
+  token = req.headers.authorization.split(" ")[1];
+  try {
+    let decode = jwt.verify(token, key);
+    if (decode) {
+      req.user = await User.findById({ _id: decode.id }, [
+        "_id",
+        "email",
+        "contact",
+      ]);
+    } else {
+      return res.status(204).json({ msg: "Token expired!" });
     }
+    next();
+  } catch (err) {
+    return res.status(500).json({ msg: "server Error!" });
   }
-  return res.status(203).json({ msg: "token not found!" });
 };
 const getUser = async (req, res, next) => {
-  let id = req.user.id;
-  let user = null;
   try {
-    user = await User.findById({ id }, "-password");
-    if (!user) {
-      return res.status(204).json({ status: 0, message: "user not found!" });
-    }
-    return res.status(200).json({ ...user });
+    let user = await User.findById({ _id: req.user.id }, [
+      "-password",
+      "-isAdmin",
+      "-user_type",
+    ]);
+    return res.status(200).json({ ...user._doc });
   } catch (err) {
     return res.status(500).json({ msg: "Server Error" });
   }
