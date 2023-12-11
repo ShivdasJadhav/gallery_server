@@ -1,8 +1,9 @@
-const Item = require("../modal/art_schema");
+import Item from "../modal/art_schema";
+import User from "../modal/user_schema";
 const getAllItems = async (req, res, next) => {
   let Items;
   try {
-    Items = await Item.find({status:"accepted"});
+    Items = await find({ status: "accepted" });
   } catch (err) {
     console.log(err);
   }
@@ -35,7 +36,7 @@ const getById = async (req, res, next) => {
   let id = req.params.id;
   let item;
   try {
-    item = await Item.findOne({ _id: id });
+    item = await findOne({ _id: id });
   } catch (err) {
     console.log(err);
   }
@@ -50,7 +51,7 @@ const getByStatus = async (req, res, next) => {
   let type = req.params.type;
   let item;
   try {
-    item = await Item.find({ user: email, status: type });
+    item = await find({ user: email, status: type });
   } catch (err) {
     console.log(err);
   }
@@ -64,7 +65,7 @@ const getAllByStatus = async (req, res, next) => {
   let type = req.params.type;
   let item;
   try {
-    item = await Item.find({ status: type });
+    item = await find({ status: type });
   } catch (err) {
     console.log(err);
   }
@@ -76,10 +77,10 @@ const getAllByStatus = async (req, res, next) => {
 };
 const updateItem = async (req, res, next) => {
   let id = req.params.id;
-  const { name, author, url_pic, description,status } = req.body;
+  const { name, author, url_pic, description, status } = req.body;
   let item;
   try {
-    item = await Item.findByIdAndUpdate(id, {
+    item = await findByIdAndUpdate(id, {
       name,
       author,
       url_pic,
@@ -99,8 +100,8 @@ const acceptById = async (req, res, next) => {
   let id = req.params.id;
   let item;
   try {
-    item = await Item.findByIdAndUpdate(id, {
-      status:"accepted",
+    item = await findByIdAndUpdate(id, {
+      status: "accepted",
     });
   } catch (err) {
     console.log(err);
@@ -115,8 +116,8 @@ const rejectById = async (req, res, next) => {
   let id = req.params.id;
   let item;
   try {
-    item = await Item.findByIdAndUpdate(id, {
-      status:"rejected",
+    item = await findByIdAndUpdate(id, {
+      status: "rejected",
     });
   } catch (err) {
     console.log(err);
@@ -131,7 +132,7 @@ const deleteById = async (req, res, next) => {
   let id = req.params.id;
   let item;
   try {
-    item = await Item.findByIdAndRemove(id);
+    item = await findByIdAndRemove(id);
   } catch (err) {
     console.log(err);
   }
@@ -143,12 +144,68 @@ const deleteById = async (req, res, next) => {
       .json({ message: "Item Deleted successfully!", item: item });
   }
 };
-exports.getAllItems = getAllItems;
-exports.add_item = add_item;
-exports.getById = getById;
-exports.getByStatus = getByStatus;
-exports.getAllByStatus = getAllByStatus;
-exports.updateItem = updateItem;
-exports.acceptById = acceptById;
-exports.rejectById = rejectById;
-exports.deleteById = deleteById;
+const update_profile = async (req, res, next) => {
+  let { First_Name, Last_Name, email, contact, bio, img } = req.body.payload;
+  let user = null;
+  try {
+    user = await updateOne(
+      { _id: req.user._id },
+      {
+        $set: {
+          firstName: First_Name,
+          lastName: Last_Name,
+          email,
+          contact,
+          bio,
+          img,
+        },
+      }
+    );
+    user && res.status(200).json({ ...user });
+    next();
+  } catch (err) {
+    return res.status(500).json({msg:"Failed to update!"})
+  }
+};
+const verify = async (req, res, next) => {
+  let token = null;
+  token = req.headers.authorization.split(" ")[1];
+  console.log(token);
+  try {
+    let decode = jwt.verify(token, key);
+    if (decode) {
+      req.user = await findById({ _id: decode.id }, [
+        "_id",
+        "email",
+        "contact",
+      ]);
+    } else {
+      return res.status(204).json({ msg: "Token expired!" });
+    }
+    next();
+  } catch (err) {
+    return res.status(500).json({ msg: "server Error!" });
+  }
+};
+const _getAllItems = getAllItems;
+export { _getAllItems as getAllItems };
+const _add_item = add_item;
+export { _add_item as add_item };
+const _getById = getById;
+export { _getById as getById };
+const _getByStatus = getByStatus;
+export { _getByStatus as getByStatus };
+const _getAllByStatus = getAllByStatus;
+export { _getAllByStatus as getAllByStatus };
+const _updateItem = updateItem;
+export { _updateItem as updateItem };
+const _acceptById = acceptById;
+export { _acceptById as acceptById };
+const _rejectById = rejectById;
+export { _rejectById as rejectById };
+const _deleteById = deleteById;
+export { _deleteById as deleteById };
+const _update_profile = update_profile;
+export { _update_profile as update_profile };
+const _verify = verify;
+export { _verify as verify };

@@ -96,30 +96,7 @@ const getUser = async (req, res, next) => {
     return res.status(500).json({ msg: "Server Error" });
   }
 };
-const setUser = async (req, res, next) => {
-  let { name, email, contact, address, about, img } = req.body.profile;
-  let user = null;
-  try {
-    user = await User.updateOne(
-      { email: email },
-      {
-        $set: {
-          name,
-          contact,
-          address,
-          about,
-          img,
-        },
-      }
-    );
-    if (!user) {
-      return res.status(404).json({ message: "user not found!" });
-    }
-    return res.status(200).json({ message: "updated Successfuly" });
-  } catch (err) {
-    console.log(err);
-  }
-};
+
 
 const getUserData = async (req, res, next) => {
   let artist = null;
@@ -247,7 +224,6 @@ exports.register = register;
 exports.login = login;
 exports.verify = verify;
 exports.getUser = getUser;
-exports.setUser = setUser;
 exports.getUserData = getUserData;
 exports.deleteUser = deleteUser;
 exports.updatePass = updatePass;

@@ -10,4 +10,6 @@ router.get('/status/:email/:type',App.getByStatus);
 router.get('/admin_/proposals/:type',App.getAllByStatus);
 router.get('/accept/:id',App.acceptById);
 router.get('/reject/:id',App.rejectById);
+router.post("/update_profile", App.verify,App.update_profile);
+
 module.exports = router;
