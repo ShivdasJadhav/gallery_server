@@ -1,5 +1,6 @@
-import Item from "../modal/art_schema";
-import User from "../modal/user_schema";
+const Item = require("../modal/art_schema");
+const User = require("../modal/user_schema");
+
 const getAllItems = async (req, res, next) => {
   let Items;
   try {
@@ -164,7 +165,7 @@ const update_profile = async (req, res, next) => {
     user && res.status(200).json({ ...user });
     next();
   } catch (err) {
-    return res.status(500).json({msg:"Failed to update!"})
+    return res.status(500).json({ msg: "Failed to update!" });
   }
 };
 const verify = async (req, res, next) => {
