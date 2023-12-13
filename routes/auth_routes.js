@@ -2,15 +2,10 @@ const express = require("express");
 const {
   register,
   login,
-  verify,
-  getUser,
-  setUser,
   getUserData,
   localVar,
-  deleteUser,
-  updatePass,
-  // refresh_token,
 } = require("../controllers/func_auth");
+const { verify } = require("../controllers/common");
 const router = express.Router();
 router.post("/register", register);
 router.post("/login", login);

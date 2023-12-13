@@ -70,73 +70,6 @@ const login = async (req, res, next) => {
   }
 };
 
-// Verify user
-// middleware
-const verify = async (req, res, next) => {
-  let token = null;
-  token = req.headers.authorization.split(" ")[1];
-  try {
-    let decode = jwt.verify(token, key);
-    if (decode) {
-      req.user = await User.findById({ _id: decode.id }, [
-        "_id",
-        "email",
-        "contact",
-      ]);
-    } else {
-      return res.status(204).json({ msg: "Token expired!" });
-    }
-    next();
-  } catch (err) {
-    return res.status(500).json({ msg: "server Error!" });
-  }
-};
-
-// Retrieve user
-// middleware
-const getUser = async (req, res, next) => {
-  try {
-    let user = await User.findById({ _id: req.user.id }, [
-      "-password",
-      "-isAdmin",
-      "-user_type",
-    ]);
-    return res.status(200).json({ ...user._doc });
-  } catch (err) {
-    return res.status(500).json({ msg: "Server Error" });
-  }
-};
-
-// Update user password
-// url >> /auth/reset_pass
-const updatePass = async (req, res, next) => {
-  let { email, newPass } = req.body;
-  if (!req.app.locals.resetSession) {
-    return res.status(203).json({ msg: "session expired" });
-  }
-  try {
-    let salt = bcrypt.genSalt(12);
-    const hash = bcrypt.hashSync(newPass, salt);
-    await User.updateOne(
-      { email: email },
-      {
-        $set: {
-          password: hash,
-        },
-      },
-      (err, data) => {
-        if (err) {
-          return res.status(500).json({ msg: "Failed to Update", err });
-        }
-        req.app.locals.resetSession = false;
-        return res.status(200).json({ message: "updated Successfully" });
-      }
-    );
-  } catch (err) {
-    res.status(500).json({ msg: "server Error", err });
-  }
-};
-
 // Set user data in Request
 // middleware
 const localVar = async (req, res, next) => {
@@ -154,7 +87,7 @@ const generateToken = (id) => {
 };
 
 // returns user status count of application
-// url 
+// url
 const getUserData = async (req, res, next) => {
   let artist = null;
   let art_lover = null;
@@ -168,25 +101,6 @@ const getUserData = async (req, res, next) => {
     return res.status(200).json({ artist, art_lover, orgs, users });
   } catch (err) {
     console.log(err);
-  }
-};
-
-// Deletes a user account
-// url >>
-const deleteUser = async (req, res, next) => {
-  let id = req.body.id;
-  let user = null;
-  try {
-    user = await User.findByIdAndRemove(id);
-  } catch (err) {
-    console.log(err);
-  }
-  if (!user) {
-    return res.status(400).json({ message: "Failed to Delete" });
-  } else {
-    return res
-      .status(200)
-      .json({ message: "user Deleted successfully!", user: user });
   }
 };
 
@@ -216,12 +130,4 @@ const resetSession = async (req, res, next) => {
   return res.status(203).json({ msg: "session expired" });
 };
 
-exports.register = register;
-exports.login = login;
-exports.verify = verify;
-exports.getUser = getUser;
-exports.getUserData = getUserData;
-exports.deleteUser = deleteUser;
-exports.updatePass = updatePass;
-exports.localVar = localVar;
-exports.updatePass = updatePass;
+export { register, login, getUserData, localVar };

@@ -145,68 +145,15 @@ const deleteById = async (req, res, next) => {
       .json({ message: "Item Deleted successfully!", item: item });
   }
 };
-const update_profile = async (req, res, next) => {
-  let { First_Name, Last_Name, email, contact, bio, img } = req.body.payload;
-  let user = null;
-  try {
-    user = await updateOne(
-      { _id: req.user._id },
-      {
-        $set: {
-          firstName: First_Name,
-          lastName: Last_Name,
-          email,
-          contact,
-          bio,
-          img,
-        },
-      }
-    );
-    user && res.status(200).json({ ...user });
-    next();
-  } catch (err) {
-    return res.status(500).json({ msg: "Failed to update!" });
-  }
+
+export {
+  getAllItems,
+  add_item,
+  getById,
+  getByStatus,
+  getAllByStatus,
+  updateItem,
+  acceptById,
+  rejectById,
+  deleteById,
 };
-const verify = async (req, res, next) => {
-  let token = null;
-  token = req.headers.authorization.split(" ")[1];
-  console.log(token);
-  try {
-    let decode = jwt.verify(token, key);
-    if (decode) {
-      req.user = await findById({ _id: decode.id }, [
-        "_id",
-        "email",
-        "contact",
-      ]);
-    } else {
-      return res.status(204).json({ msg: "Token expired!" });
-    }
-    next();
-  } catch (err) {
-    return res.status(500).json({ msg: "server Error!" });
-  }
-};
-const _getAllItems = getAllItems;
-export { _getAllItems as getAllItems };
-const _add_item = add_item;
-export { _add_item as add_item };
-const _getById = getById;
-export { _getById as getById };
-const _getByStatus = getByStatus;
-export { _getByStatus as getByStatus };
-const _getAllByStatus = getAllByStatus;
-export { _getAllByStatus as getAllByStatus };
-const _updateItem = updateItem;
-export { _updateItem as updateItem };
-const _acceptById = acceptById;
-export { _acceptById as acceptById };
-const _rejectById = rejectById;
-export { _rejectById as rejectById };
-const _deleteById = deleteById;
-export { _deleteById as deleteById };
-const _update_profile = update_profile;
-export { _update_profile as update_profile };
-const _verify = verify;
-export { _verify as verify };
