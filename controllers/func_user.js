@@ -1,7 +1,7 @@
 const User = require("../modal/user_schema");
 
-// Retrieve user
-// middleware
+// Returns user Data for profile
+// url >> /user/getUser
 const getUser = async (req, res, next) => {
   try {
     let user = await User.findById({ _id: req.user.id }, [
@@ -14,9 +14,31 @@ const getUser = async (req, res, next) => {
     return res.status(500).json({ msg: "Server Error" });
   }
 };
-
+// Update use details
+// url >>
+const updateProfile = async (req, res, next) => {
+  let { First_Name, Last_Name, email, contact, bio, img } = req.body;
+  let user = null;
+  try {
+    user = await User.findByIdAndUpdate(
+      { _id: req.user._id },
+      {
+        firstName: First_Name,
+        lastName: Last_Name,
+        email,
+        contact,
+        bio,
+        img,
+      }
+    );
+    user && res.status(200).json({ msg: "Profile updated successfully!" });
+    next();
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to update!" });
+  }
+};
 // Update user password
-// url >> 
+// url >>
 const updatePass = async (req, res, next) => {
   let { email, newPass } = req.body;
   if (!req.app.locals.resetSession) {
@@ -64,30 +86,4 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-// Update use details
-// url >> 
-const updateProfile = async (req, res, next) => {
-  let { First_Name, Last_Name, email, contact, bio, img } = req.body.payload;
-  let user = null;
-  try {
-    user = await updateOne(
-      { _id: req.user._id },
-      {
-        $set: {
-          firstName: First_Name,
-          lastName: Last_Name,
-          email,
-          contact,
-          bio,
-          img,
-        },
-      }
-    );
-    user && res.status(200).json({ ...user });
-    next();
-  } catch (err) {
-    return res.status(500).json({ msg: "Failed to update!" });
-  }
-};
-
-export { getUser, deleteUser, updatePass,updateProfile};
+exports.func_user = { getUser, deleteUser, updatePass, updateProfile };

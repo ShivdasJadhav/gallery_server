@@ -146,7 +146,7 @@ const deleteById = async (req, res, next) => {
   }
 };
 
-export {
+exports.func_app = {
   getAllItems,
   add_item,
   getById,

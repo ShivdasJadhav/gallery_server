@@ -129,5 +129,4 @@ const resetSession = async (req, res, next) => {
   }
   return res.status(203).json({ msg: "session expired" });
 };
-
-export { register, login, getUserData, localVar };
+exports.func_auth = { register, login, getUserData, localVar };

@@ -4,6 +4,7 @@ const cors = require("cors");
 const app = express();
 const App = require("./routes/app_routes");
 const Auth = require("./routes/auth_routes");
+const User= require("./routes/user_routes");
 const registerMail = require("./controllers/mailer");
 const { config } = require("dotenv");
 config();
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use("/auth", Auth);
 app.use("/app", App);
+app.use("/user",User)
 app.use("/mail", registerMail);
 mongoose
   .connect(

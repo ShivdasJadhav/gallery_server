@@ -1,9 +1,8 @@
 const express = require("express");
+const {common} = require("../controllers/common");
+const {func_user} = require("../controllers/func_user");
 const router = express.Router();
-const {
-  getUser,
-  deleteUser,
-  updatePass,
-  updateProfile,
-} = require("../controllers/func_user");
-router.get("", verify, getUser);
+
+router.get("/getUser", common.verifyToken, func_user.getUser);
+router.post("/updateProfile",common.verifyToken,func_user.updateProfile)
+module.exports = router;

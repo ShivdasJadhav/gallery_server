@@ -1,24 +1,36 @@
 const User = require("../modal/user_schema");
-
+const jwt = require("jsonwebtoken");
+const { config } = require("dotenv");
+config();
+key = process.env.JWT_SECRETE_KEY;
 // Verify user
 // middleware
-const verify = async (req, res, next) => {
-  let token = null;
-  token = req.headers.authorization.split(" ")[1];
+const verifyToken = async (req, res, next) => {
   try {
-    let decode = jwt.verify(token, key);
-    if (decode) {
-      req.user = await User.findById({ _id: decode.id }, [
-        "_id",
-        "email",
-        "contact",
-      ]);
+    if (req.headers.authorization.startsWith("Bearer")) {
+      let token = req.headers.authorization.split(" ")[1];
+      let decode = jwt.verify(token, key);
+      if (decode) {
+        let user = null;
+        user = await User.findById({ _id: decode.id }, [
+          "_id",
+          "email",
+          "contact",
+        ]);
+        if (user) {
+          req.user = user;
+          next();
+        } else {
+          return res.status(204).json({ msg: "user not exist !" });
+        }
+      } else {
+        return res.status(204).json({ msg: "Token expired!" });
+      }
     } else {
-      return res.status(204).json({ msg: "Token expired!" });
+      throw new "there is no token"();
     }
-    next();
   } catch (err) {
-    return res.status(500).json({ msg: "server Error!" });
+    return res.status(204).json({ msg: "server Error!", err });
   }
 };
-export { verify };
+exports.common = { verifyToken };
