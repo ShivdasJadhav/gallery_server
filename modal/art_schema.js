@@ -1,15 +1,7 @@
 const mongoose=require('mongoose');
 const schema=mongoose.Schema;
-const Item_schema=new schema({
-    name:{
-        type:String,
-        required:true
-    },
-    author:{
-        type:String,
-        required:true
-    },
-    url_pic:{
+const Art_schema=new schema({
+    title:{
         type:String,
         required:true
     },
@@ -17,12 +9,17 @@ const Item_schema=new schema({
         type:String,
         required:true
     },
-    user:{
+    img:{
         type:String,
         required:true
-    },status:{
+    },
+    user_id:{
+        type:String,
+        required:true
+    },
+    status:{
         type:String,
         required:true
     }
 });
-module.exports=mongoose.model("Item",Item_schema);
+module.exports=mongoose.model("Art",Art_schema);

@@ -14,8 +14,9 @@ const getUser = async (req, res, next) => {
     return res.status(500).json({ msg: "Server Error" });
   }
 };
-// Update use details
-// url >>
+
+// Update user Profile
+// url >> /user/updateProfile
 const updateProfile = async (req, res, next) => {
   let { First_Name, Last_Name, email, contact, bio, img } = req.body;
   let user = null;
@@ -37,6 +38,7 @@ const updateProfile = async (req, res, next) => {
     return res.status(500).json({ msg: "Failed to update!" });
   }
 };
+
 // Update user password
 // url >>
 const updatePass = async (req, res, next) => {
