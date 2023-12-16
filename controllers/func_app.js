@@ -29,6 +29,8 @@ const addArt = async (req, res, next) => {
       img,
       user_id: req.user.id,
       status: "review",
+      likes: null,
+      views: null,
     });
     art && res.status(201).json({ msg: "Saved To Gallery!" });
   } catch (err) {
@@ -58,18 +60,16 @@ const getCount = async (req, res, next) => {
   }
 };
 
-const getById = async (req, res, next) => {
+// Returns a Art piece with specified Id
+// url -> /app/getById/:id
+const getArtById = async (req, res, next) => {
   let id = req.params.id;
-  let item;
+  let art;
   try {
-    item = await findOne({ _id: id });
+    art = await Art.findOne({ _id: id });
+    art && res.status(200).json({ ...art._doc });
   } catch (err) {
-    console.log(err);
-  }
-  if (!item) {
-    return res.status(401).json({ msg: "Failed to Load" });
-  } else {
-    return res.status(200).json({ item });
+    return res.status(500).json({ msg: "Failed to Load" });
   }
 };
 
@@ -152,14 +152,54 @@ const deleteById = async (req, res, next) => {
   }
 };
 
+// update a Art for Like
+// url -> /app/likeArt/:id
+const likeArt = async (req, res, next) => {
+  let art_id = req.params.id;
+  let art = null;
+  console.log(art_id);
+  try {
+    art = await Art.findByIdAndUpdate(
+      { _id: art_id },
+      {
+        $push: { likes: req.user.id },
+      }
+    );
+    if (art) {
+      return res.status(200).json({ msg: "liked" });
+    }
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to Save Art", err });
+  }
+};
+// update a Art for dislike
+// url -> /app/dislikeArt/:id
+const disLikeArt = async (req, res, next) => {
+  let art_id = req.params.id;
+  let art = null;
+  try {
+    art = await Art.findByIdAndUpdate(
+      { _id: art_id },
+      {
+        $pull: { likes: req.user.id },
+      }
+    );
+    art && res.status(200).json({ msg: "disliked" });
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to Save Art", err });
+  }
+};
+
 exports.func_app = {
   getAllArts,
   addArt,
   getCount,
-  getById,
+  getArtById,
   getByStatus,
   updateArt,
   acceptById,
   rejectById,
   deleteById,
+  likeArt,
+  disLikeArt,
 };

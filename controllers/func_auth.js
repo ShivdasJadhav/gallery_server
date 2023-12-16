@@ -60,6 +60,7 @@ const login = async (req, res, next) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        isAdmin: user.isAdmin,
         token: generateToken(user._id),
       });
     } else {
@@ -84,6 +85,21 @@ const localVar = async (req, res, next) => {
 // callback
 const generateToken = (id) => {
   return jwt.sign({ id }, key, { expiresIn: "24h" });
+};
+
+// returns user count as per user types
+const getUserCount = async (req, res, next) => {
+  let artist = null;
+  let enthusiast = null;
+  let orgs = null;
+  try {
+    artist = await User.count({ user_type: "artist" });
+    enthusiast = await User.count({ user_type: "enthusiast" });
+    orgs = await User.count({ user_type: "organization" });
+    return res.status(200).json({ artist, enthusiast, orgs });
+  } catch (err) {
+    return res.status(500).json({ msg: "failed to retrieve Data" });
+  }
 };
 
 // returns user status count of application
@@ -129,4 +145,4 @@ const resetSession = async (req, res, next) => {
   }
   return res.status(203).json({ msg: "session expired" });
 };
-exports.func_auth = { register, login, getUserData, localVar };
+exports.func_auth = { register, login, getUserData, localVar, getUserCount };

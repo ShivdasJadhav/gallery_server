@@ -1,5 +1,5 @@
 const User = require("../modal/user_schema");
-
+const Art = require("../modal/art_schema");
 // Returns user Data for profile
 // url >> /user/getUser
 const getUser = async (req, res, next) => {
@@ -11,10 +11,26 @@ const getUser = async (req, res, next) => {
     ]);
     return res.status(200).json({ ...user._doc });
   } catch (err) {
-    return res.status(500).json({ msg: "Server Error" });
+    return res.status(500).json({ msg: "Server Error", err });
   }
 };
-
+// Returns user Data for profile
+// url >> /user/getUserById/:id
+const getUserById = async (req, res, next) => {
+  try {
+    let user = await User.findById({ _id: req.user.id }, [
+      "_id",
+      "firstName",
+      "lastName",
+      "email",
+      "user_type",
+      "img",
+    ]);
+    return res.status(200).json({ ...user._doc });
+  } catch (err) {
+    return res.status(500).json({ msg: "Server Error", err });
+  }
+};
 // Update user Profile
 // url >> /user/updateProfile
 const updateProfile = async (req, res, next) => {
@@ -69,23 +85,44 @@ const updatePass = async (req, res, next) => {
   }
 };
 
-// Deletes a user account
-// url >>
-const deleteUser = async (req, res, next) => {
-  let id = req.body.id;
-  let user = null;
+// Returns all users
+// url -> /app/getUsers
+const getUsers = async (req, res, next) => {
+  let users = null;
   try {
-    user = await User.findByIdAndRemove(id);
+    if (req.user.isAdmin) {
+      users = await User.find({}, ["-password", "-bio"]);
+      return res.status(200).json(users);
+    } else {
+      return res.status(204).json({ msg: "not authorized admin" });
+    }
   } catch (err) {
-    console.log(err);
-  }
-  if (!user) {
-    return res.status(400).json({ message: "Failed to Delete" });
-  } else {
-    return res
-      .status(200)
-      .json({ message: "user Deleted successfully!", user: user });
+    return res.status(500).json({ msg: "failed to retrieve Data" });
   }
 };
 
-exports.func_user = { getUser, deleteUser, updatePass, updateProfile };
+// Deletes a user account
+// url >> /user/deleteUser
+const deleteUser = async (req, res, next) => {
+  let id = req.body.id;
+  let user = null;
+  let art = null;
+  try {
+    user = await User.findByIdAndRemove(id);
+    art = await Art.findByIdAndRemove(id);
+    if (user && art) {
+      return res.status(200).json({ msg: "deleted successfully" });
+    }
+  } catch (err) {
+    return res.status(400).json({ message: "Failed to Delete" });
+  }
+};
+
+exports.func_user = {
+  getUser,
+  getUserById,
+  deleteUser,
+  updatePass,
+  updateProfile,
+  getUsers,
+};
