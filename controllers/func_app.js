@@ -17,23 +17,6 @@ const getAllArts = async (req, res, next) => {
   }
 };
 
-// Return all art of a specific status
-// url -> /app/getByStatus/:status
-const getAllByStatus = async (req, res, next) => {
-  let type = req.params.type;
-  let item;
-  try {
-    item = await find({ status: type });
-  } catch (err) {
-    console.log(err);
-  }
-  if (!item) {
-    return res.status(401).json({ msg: "Failed to Load" });
-  } else {
-    return res.status(200).json({ item });
-  }
-};
-
 // Save a Art piece
 // url -> /app/newArt
 const addArt = async (req, res, next) => {
@@ -90,41 +73,35 @@ const getById = async (req, res, next) => {
   }
 };
 
+// Return all art of a specific status
+// url -> /app/getByStatus/:status
 const getByStatus = async (req, res, next) => {
-  let email = req.params.email;
-  let type = req.params.type;
-  let item;
+  let status = req.params.type;
+  let art;
   try {
-    item = await find({ user: email, status: type });
+    art = await Art.find({ user_id: req.user.id, status: status });
+    art && res.status(200).json({ ...art });
   } catch (err) {
-    console.log(err);
-  }
-  if (!item) {
-    return res.status(401).json({ msg: "Failed to Load" });
-  } else {
-    return res.status(200).json({ item });
+    return res.status(200).json({ msg: "failed to fetch by status!" });
   }
 };
 
-const updateItem = async (req, res, next) => {
-  let id = req.params.id;
-  const { title, author, url_pic, description, status } = req.body;
-  let item;
+// Update an Art piece via id
+// url -> /app/updateArt/:id
+const updateArt = async (req, res, next) => {
+  const { title, description, img, _id } = req.body;
+  console.log({ title, description, img, _id });
+  let art = null;
   try {
-    item = await findByIdAndUpdate(id, {
+    art = await Art.findByIdAndUpdate(_id, {
       title,
-      author,
-      url_pic,
       description,
-      status,
+      img,
+      status: "review",
     });
+    art && res.status(200).json({ msg: "updated!" });
   } catch (err) {
-    console.log(err);
-  }
-  if (!item) {
-    return res.status(401).json({ meassage: "Failed to Update" });
-  } else {
-    return res.status(200).json({ msg: "Gallary Updated!" });
+    return res.status(500).json({ msg: "Failed to Update" });
   }
 };
 const acceptById = async (req, res, next) => {
@@ -159,20 +136,19 @@ const rejectById = async (req, res, next) => {
     return res.status(200).json({ msg: "Marked as Rejected!" });
   }
 };
+
+// Delete an Art piece by Id
+// url -> /app/deleteArt/:id
 const deleteById = async (req, res, next) => {
   let id = req.params.id;
-  let item;
+  let art;
   try {
-    item = await findByIdAndRemove(id);
+    art = await Art.findByIdAndRemove(id);
+    art
+      ? res.status(200).json({ msg: "art deleted" })
+      : res.status(500).json({ msg: "failed to delete art" });
   } catch (err) {
-    console.log(err);
-  }
-  if (!item) {
-    return res.status(400).json({ msg: "Failed to Delete" });
-  } else {
-    return res
-      .status(200)
-      .json({ msg: "Item Deleted successfully!", item: item });
+    return res.status(500).json({ msg: "failed to delete art" });
   }
 };
 
@@ -182,7 +158,7 @@ exports.func_app = {
   getCount,
   getById,
   getByStatus,
-  updateItem,
+  updateArt,
   acceptById,
   rejectById,
   deleteById,
