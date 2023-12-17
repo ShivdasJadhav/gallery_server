@@ -21,7 +21,13 @@ const Art_schema = new schema({
     type: String,
     required: true,
   },
-  likes: [{ type: String, ref: "User" }],
-  views: [{ type: String, ref: "User" }],
+  likes: [{ type: String }],
+  views: [{ type: String }],
+  comments: [
+    {
+      text: { type: String, required: true },
+      postedBy: { type: String, required: true },
+    },
+  ],
 });
 module.exports = mongoose.model("Art", Art_schema);

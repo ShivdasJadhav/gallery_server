@@ -22,16 +22,16 @@ const verifyToken = async (req, res, next) => {
           req.user = user;
           next();
         } else {
-          return res.status(204).json({ msg: "user not exist !" });
+          return res.status(203).json({ msg: "Not Authorized !" });
         }
       } else {
-        return res.status(204).json({ msg: "Token expired!" });
+        return res.status(203).json({ msg: "Token expired!" });
       }
     } else {
-      throw new "there is no token"();
+      return res.status(203).json({ msg: "Not Authorized !" });
     }
   } catch (err) {
-    return res.status(204).json({ msg: "server Error!", err });
+    return res.status(500).json({ msg: "server Error!", err });
   }
 };
 exports.common = { verifyToken };
