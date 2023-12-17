@@ -1,5 +1,6 @@
 const User = require("../modal/user_schema");
 const Art = require("../modal/art_schema");
+
 // Returns user Data for profile
 // url >> /user/getUser
 const getUser = async (req, res, next) => {
@@ -14,6 +15,7 @@ const getUser = async (req, res, next) => {
     return res.status(500).json({ msg: "Server Error", err });
   }
 };
+
 // Returns user Data for profile
 // url >> /user/getUserById/:id
 const getUserById = async (req, res, next) => {
@@ -31,6 +33,7 @@ const getUserById = async (req, res, next) => {
     return res.status(500).json({ msg: "Server Error", err });
   }
 };
+
 // Update user Profile
 // url >> /user/updateProfile
 const updateProfile = async (req, res, next) => {
@@ -118,6 +121,19 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
+// returns a user for comment
+// url -> /user/getPostedBy/:id
+const getPostBy = async (req, res, next) => {
+  const id = req.params.id;
+  let user = null;
+  try {
+    user = await User.findById({ _id:id },["firstName","lastName","img"]);
+    user && res.status(200).json({ ...user._doc });
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to get user", err });
+  }
+};
+
 exports.func_user = {
   getUser,
   getUserById,
@@ -125,4 +141,5 @@ exports.func_user = {
   updatePass,
   updateProfile,
   getUsers,
+  getPostBy,
 };

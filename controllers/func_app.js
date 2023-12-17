@@ -7,9 +7,7 @@ const getAllArts = async (req, res, next) => {
   let Art;
   try {
     Art = await find({ status: "published" });
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
   if (!Art) {
     return res.status(400).json({ msg: "No Art Found" });
   } else {
@@ -29,8 +27,9 @@ const addArt = async (req, res, next) => {
       img,
       user_id: req.user.id,
       status: "review",
-      likes: null,
-      views: null,
+      likes: [],
+      views: [],
+      comments: [],
     });
     art && res.status(201).json({ msg: "Saved To Gallery!" });
   } catch (err) {
@@ -66,7 +65,7 @@ const getArtById = async (req, res, next) => {
   let id = req.params.id;
   let art;
   try {
-    art = await Art.findOne({ _id: id });
+    art = await Art.findOne({ _id: id }, ["-comments"]);
     art && res.status(200).json({ ...art._doc });
   } catch (err) {
     return res.status(500).json({ msg: "Failed to Load" });
@@ -90,7 +89,6 @@ const getByStatus = async (req, res, next) => {
 // url -> /app/updateArt/:id
 const updateArt = async (req, res, next) => {
   const { title, description, img, _id } = req.body;
-  console.log({ title, description, img, _id });
   let art = null;
   try {
     art = await Art.findByIdAndUpdate(_id, {
@@ -104,6 +102,7 @@ const updateArt = async (req, res, next) => {
     return res.status(500).json({ msg: "Failed to Update" });
   }
 };
+
 const acceptById = async (req, res, next) => {
   let id = req.params.id;
   let item;
@@ -111,9 +110,7 @@ const acceptById = async (req, res, next) => {
     item = await findByIdAndUpdate(id, {
       status: "accepted",
     });
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
   if (!item) {
     return res.status(401).json({ meassage: "Failed to Update" });
   } else {
@@ -127,9 +124,7 @@ const rejectById = async (req, res, next) => {
     item = await findByIdAndUpdate(id, {
       status: "rejected",
     });
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
   if (!item) {
     return res.status(401).json({ meassage: "Failed to Update" });
   } else {
@@ -151,13 +146,49 @@ const deleteById = async (req, res, next) => {
     return res.status(500).json({ msg: "failed to delete art" });
   }
 };
-
+// update a Art for Approval
+// url -> /app/approveArt/:id
+const approveArt = async (req, res, next) => {
+  let art_id = req.params.id;
+  let art = null;
+  try {
+    art = await Art.findByIdAndUpdate(
+      { _id: art_id },
+      {
+        status: "published",
+      }
+    );
+    if (art) {
+      return res.status(200).json({ msg: "published" });
+    }
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to like", err });
+  }
+};
+// update a Art for rejection
+// url -> /app/rejectArt/:id
+const rejectArt = async (req, res, next) => {
+  let art_id = req.params.id;
+  let art = null;
+  try {
+    art = await Art.findByIdAndUpdate(
+      { _id: art_id },
+      {
+        status: "rejected",
+      }
+    );
+    if (art) {
+      return res.status(200).json({ msg: "rejected" });
+    }
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to like", err });
+  }
+};
 // update a Art for Like
 // url -> /app/likeArt/:id
 const likeArt = async (req, res, next) => {
   let art_id = req.params.id;
   let art = null;
-  console.log(art_id);
   try {
     art = await Art.findByIdAndUpdate(
       { _id: art_id },
@@ -169,9 +200,10 @@ const likeArt = async (req, res, next) => {
       return res.status(200).json({ msg: "liked" });
     }
   } catch (err) {
-    return res.status(500).json({ msg: "Failed to Save Art", err });
+    return res.status(500).json({ msg: "Failed to like", err });
   }
 };
+
 // update a Art for dislike
 // url -> /app/dislikeArt/:id
 const disLikeArt = async (req, res, next) => {
@@ -186,10 +218,39 @@ const disLikeArt = async (req, res, next) => {
     );
     art && res.status(200).json({ msg: "disliked" });
   } catch (err) {
-    return res.status(500).json({ msg: "Failed to Save Art", err });
+    return res.status(500).json({ msg: "Failed to dislike", err });
   }
 };
 
+// update a Art for comment
+// url -> /app/postComment
+const postComment = async (req, res, next) => {
+  const { art_id, text } = req.body;
+  let art = null;
+  try {
+    art = await Art.findByIdAndUpdate(
+      { _id: art_id },
+      {
+        $push: { comments: { text: text, postedBy: req.user.id } },
+      }
+    );
+    art && res.status(200).json({ msg: "commented" });
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to comment", err });
+  }
+};
+// Returns comments of Art piece with specified Id
+// url -> /app/getComments/:id
+const getComments = async (req, res, next) => {
+  let id = req.params.id;
+  let art;
+  try {
+    art = await Art.findOne({ _id: id }, ["comments"]);
+    art && res.status(200).json({ ...art._doc });
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to Load" });
+  }
+};
 exports.func_app = {
   getAllArts,
   addArt,
@@ -202,4 +263,8 @@ exports.func_app = {
   deleteById,
   likeArt,
   disLikeArt,
+  postComment,
+  getComments,
+  approveArt,
+  rejectArt,
 };
