@@ -17,6 +17,10 @@ const Art_schema = new schema({
     type: String,
     required: true,
   },
+  author: {
+    type: String,
+    required: true,
+  },
   status: {
     type: String,
     required: true,
