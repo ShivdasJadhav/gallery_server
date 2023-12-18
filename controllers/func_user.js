@@ -40,6 +40,10 @@ const updateProfile = async (req, res, next) => {
   let { First_Name, Last_Name, email, contact, bio, img } = req.body;
   let user = null;
   try {
+    await Art.updateMany(
+      { user_id: req.user.id },
+      { author: First_Name + " " + Last_Name }
+    );
     user = await User.findByIdAndUpdate(
       { _id: req.user._id },
       {
@@ -127,7 +131,7 @@ const getPostBy = async (req, res, next) => {
   const id = req.params.id;
   let user = null;
   try {
-    user = await User.findById({ _id:id },["firstName","lastName","img"]);
+    user = await User.findById({ _id: id }, ["firstName", "lastName", "img"]);
     user && res.status(200).json({ ...user._doc });
   } catch (err) {
     return res.status(500).json({ msg: "Failed to get user", err });

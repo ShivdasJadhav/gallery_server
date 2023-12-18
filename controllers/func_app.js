@@ -26,6 +26,7 @@ const addArt = async (req, res, next) => {
       description,
       img,
       user_id: req.user.id,
+      author: req.user.firstName + " " + req.user.lastName,
       status: "review",
       likes: [],
       views: [],
@@ -75,13 +76,28 @@ const getArtById = async (req, res, next) => {
 // Return all art of a specific status
 // url -> /app/getByStatus/:status
 const getByStatus = async (req, res, next) => {
-  let status = req.params.type;
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
   let art;
   try {
-    art = await Art.find({ user_id: req.user.id, status: status });
-    art && res.status(200).json({ ...art });
+    if (req.query.view) {
+      art = await Art.find({ status: req.query.status });
+    } else {
+      art = await Art.find({ user_id: req.user.id, status: req.query.status });
+    }
+    art = art.filter((item) => {
+      if (req.query.artist) {
+        return item.author.toLowerCase().includes(req.query.search);
+      }
+      return item.title.toLowerCase().includes(req.query.search);
+    });
+    const totalPages = Math.ceil(art.length / limit);
+    art = art.slice(startIndex, endIndex);
+    art && res.status(200).json({ arts: [...art.reverse()], totalPages });
   } catch (err) {
-    return res.status(200).json({ msg: "failed to fetch by status!" });
+    return res.status(500).json({ msg: "failed to fetch by status!" });
   }
 };
 
@@ -221,7 +237,27 @@ const disLikeArt = async (req, res, next) => {
     return res.status(500).json({ msg: "Failed to dislike", err });
   }
 };
-
+// update a Art for view
+// url -> /app/setView/:id
+const setView = async (req, res, next) => {
+  let art_id = req.params.id;
+  let art = null;
+  try {
+    art = await Art.findById({ _id: art_id }, ["views"]);
+    if (art.views.includes(req.user.id)) {
+      return res.status(200).json({ msg: "already viewed" });
+    }
+    art = await Art.findByIdAndUpdate(
+      { _id: art_id },
+      {
+        $push: { views: req.user.id },
+      }
+    );
+    art && res.status(200).json({ msg: "viewed" });
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to set view", err });
+  }
+};
 // update a Art for comment
 // url -> /app/postComment
 const postComment = async (req, res, next) => {
@@ -251,6 +287,7 @@ const getComments = async (req, res, next) => {
     return res.status(500).json({ msg: "Failed to Load" });
   }
 };
+
 exports.func_app = {
   getAllArts,
   addArt,
@@ -267,4 +304,5 @@ exports.func_app = {
   getComments,
   approveArt,
   rejectArt,
+  setView,
 };

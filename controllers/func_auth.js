@@ -61,7 +61,7 @@ const login = async (req, res, next) => {
         lastName: user.lastName,
         email: user.email,
         isAdmin: user.isAdmin,
-        img:user.img,
+        img: user.img,
         token: generateToken(user._id),
       });
     } else {
@@ -71,7 +71,30 @@ const login = async (req, res, next) => {
     return res.status(500).json({ msg: "Server Error !" });
   }
 };
+// update user Password
+// Url >> /auth/updatePassword
+const updatePassword = async (req, res, next) => {
+  let user = null;
+  let { email, pass } = req.body;
+  try {
+    let salt = await bcrypt.genSalt(12);
+    let hash = await bcrypt.hash(pass, salt);
 
+    user = await User.findOneAndUpdate({ email: email }, { password: hash });
+    if (user) {
+      return res.status(200).json({
+        _id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      });
+    } else {
+      return res.status(500).json({ msg: "Failed to update user password !" });
+    }
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to update user password !" });
+  }
+};
 // Set user data in Request
 // middleware
 const localVar = async (req, res, next) => {
@@ -121,6 +144,19 @@ const getUserData = async (req, res, next) => {
   }
 };
 
+// Returns use details for Resetting password
+// url -> /auth/forgot/?email=
+const getDetails = async (req, res, next) => {
+  let user = null;
+  try {
+    user = await User.findOne({ email: req.query.email }, ["email", "contact"]);
+    user
+      ? res.status(200).json({ ...user._doc })
+      : res.status(203).json({ msg: "user not Found" });
+  } catch (err) {
+    return res.status(500).json({ msg: "Server error!" });
+  }
+};
 const generateOtp = async (req, res, next) => {
   req.app.locals.OTP = await otpGenerator.generate(6, {
     loweCaseAlphabet: false,
@@ -146,4 +182,12 @@ const resetSession = async (req, res, next) => {
   }
   return res.status(203).json({ msg: "session expired" });
 };
-exports.func_auth = { register, login, getUserData, localVar, getUserCount };
+exports.func_auth = {
+  register,
+  login,
+  updatePassword,
+  getUserData,
+  localVar,
+  getUserCount,
+  getDetails,
+};

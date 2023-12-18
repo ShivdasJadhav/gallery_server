@@ -16,6 +16,8 @@ const verifyToken = async (req, res, next) => {
           "_id",
           "email",
           "contact",
+          "firstName",
+          "lastName",
           "isAdmin",
         ]);
         if (user) {
