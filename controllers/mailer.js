@@ -1,5 +1,5 @@
 const router = require("../routes/app_routes");
-// const welcomeTemplate = require("../assets/welcomeTemplate.js");
+const welcomeTemplate = require("../assets/welcomeTemplate.js");
 const nodemailer = require("nodemailer");
 const mailgen = require("mailgen");
 const { config } = require("dotenv");
@@ -22,19 +22,19 @@ let transporter = nodemailer.createTransport(nodeConfig);
 //     link: "https://mailgen.js/",
 //   },
 // });
-const welcomeTemplate="<h3>shivdasd success</h2>"
+// const welcomeTemplate = "<h3>shivdasd success</h2>";
 const registerMail = async (req, res, next) => {
-  const { username, userEmail, text, subject } = req.body;
+  const { sendTo} = req.body;
   let message = {
-    from: userName,
-    to: userEmail,
-    subject: subject,
+    from: "Exhibitors @arts",
+    to: sendTo,
+    subject: "Welcome aboard!",
     html: welcomeTemplate,
   };
   await transporter
     .sendMail(message)
-    .then(() => {
-      return res.status(200).json(message);
+    .then((res) => {
+      return res.status(200).json({ details: message, res });
     })
     .catch((err) => {
       return res.status(500).json({ msg: "Failed to send Email!", err });
