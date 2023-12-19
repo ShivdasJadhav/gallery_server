@@ -18,7 +18,7 @@ let transporter = nodemailer.createTransport(nodeConfig);
 const registerMail = async (req, res, next) => {
   const { sendTo } = req.body;
   let message = {
-    from: "Exhibitors @arts",
+    from: "jshivdas07@gmail.com",
     to: sendTo,
     subject: "Welcome aboard!",
     text: "welcomeTemplate",
