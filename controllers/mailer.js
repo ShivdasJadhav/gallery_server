@@ -7,7 +7,7 @@ config();
 const userName = process.env.mailer_userName;
 const userPass = process.env.mailer_pass;
 const nodeConfig = {
-  host: "smtp-relay.sendinblue.com",
+  host: "smtp-relay.brevo.com",
   port: 587,
   auth: {
     user: userName,
@@ -15,16 +15,8 @@ const nodeConfig = {
   },
 };
 let transporter = nodemailer.createTransport(nodeConfig);
-// let mailGenerator = new mailgen({
-//   theme: "default",
-//   product: {
-//     name: "Mailgen",
-//     link: "https://mailgen.js/",
-//   },
-// });
-// const welcomeTemplate = "<h3>shivdasd success</h2>";
 const registerMail = async (req, res, next) => {
-  const { sendTo} = req.body;
+  const { sendTo } = req.body;
   let message = {
     from: "Exhibitors @arts",
     to: sendTo,
@@ -33,8 +25,8 @@ const registerMail = async (req, res, next) => {
   };
   await transporter
     .sendMail(message)
-    .then((res) => {
-      return res.status(200).json({ details: message, res });
+    .then(() => {
+      return res.status(200).json({ msg: "Email sent successfully!" });
     })
     .catch((err) => {
       return res.status(500).json({ msg: "Failed to send Email!", err });
