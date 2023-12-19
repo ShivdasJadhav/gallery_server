@@ -7,7 +7,7 @@ config();
 const userName = process.env.mailer_userName;
 const userPass = process.env.mailer_pass;
 const nodeConfig = {
-  host: "smtp-relay.brevo.com",
+  host: "smtp-relay.sendinblue.com",
   port: 587,
   auth: {
     user: userName,
