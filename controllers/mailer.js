@@ -21,7 +21,7 @@ const registerMail = async (req, res, next) => {
     from: "jshivdas07@gmail.com",
     to: sendTo,
     subject: "Welcome aboard!",
-    text: "welcomeTemplate",
+    text: welcomeTemplate,
   };
   await transporter
     .sendMail(message)
