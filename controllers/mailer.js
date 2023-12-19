@@ -1,5 +1,5 @@
 const router = require("../routes/app_routes");
-const welcomeTemplate = require("../assets/welcomeTemplate.js");
+const {welcomeTemplate} = require("../assets/welcomeTemplate.js");
 const nodemailer = require("nodemailer");
 const mailgen = require("mailgen");
 const { config } = require("dotenv");
