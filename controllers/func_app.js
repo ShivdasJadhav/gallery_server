@@ -1,19 +1,6 @@
 const Art = require("../modal/art_schema");
 const User = require("../modal/user_schema");
 
-// Returns all Arts
-// url -> /app/
-const getAllArts = async (req, res, next) => {
-  let Art;
-  try {
-    Art = await find({ status: "published" });
-  } catch (err) {}
-  if (!Art) {
-    return res.status(400).json({ msg: "No Art Found" });
-  } else {
-    return res.status(200).json({ Art });
-  }
-};
 
 // Save a Art piece
 // url -> /app/newArt
@@ -83,8 +70,10 @@ const getByStatus = async (req, res, next) => {
   let art;
   try {
     if (req.query.view) {
+      // specialized to show in home page
       art = await Art.find({ status: req.query.status });
     } else {
+      // specialized to show in custom proposal pages
       art = await Art.find({ user_id: req.user.id, status: req.query.status });
     }
     art = art.filter((item) => {
@@ -289,7 +278,6 @@ const getComments = async (req, res, next) => {
 };
 
 exports.func_app = {
-  getAllArts,
   addArt,
   getCount,
   getArtById,

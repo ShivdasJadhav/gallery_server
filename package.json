@@ -17,6 +17,7 @@
     "jsonwebtoken": "^9.0.0",
     "mailgen": "^2.0.28",
     "mongoose": "^7.0.1",
+    "node-html-parser": "^6.1.11",
     "nodemailer": "^6.9.7",
     "otp-generator": "^4.0.1",
     "react-router-dom": "^6.9.0"

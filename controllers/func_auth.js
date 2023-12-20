@@ -119,7 +119,7 @@ const getUserCount = async (req, res, next) => {
   try {
     artist = await User.count({ user_type: "artist" });
     enthusiast = await User.count({ user_type: "enthusiast" });
-    orgs = await User.count({ user_type: "organization" });
+    orgs = await User.count({ user_type: "org" });
     return res.status(200).json({ artist, enthusiast, orgs });
   } catch (err) {
     return res.status(500).json({ msg: "failed to retrieve Data" });
