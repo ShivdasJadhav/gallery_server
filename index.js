@@ -9,7 +9,7 @@ const registerMail = require("./controllers/mailer");
 const { config } = require("dotenv");
 config();
 app.use(express.json());
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(cors({ credentials: true, origin: "https://artexhibits.netlify.app" }));
 app.use("/auth", Auth);
 app.use("/app", App);
 app.use("/user",User)
