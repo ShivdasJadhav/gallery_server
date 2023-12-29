@@ -2,17 +2,22 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
+const cookieParser = require("cookie-parser");
 const App = require("./routes/app_routes");
 const Auth = require("./routes/auth_routes");
-const User= require("./routes/user_routes");
+const User = require("./routes/user_routes");
 const registerMail = require("./controllers/mailer");
+const bodyParser = require("body-parser");
 const { config } = require("dotenv");
 config();
-app.use(express.json());
+
+app.use(express.json({ limit: "200kb" }));
+// https://artexhibits.netlify.app
 app.use(cors({ credentials: true, origin: "https://artexhibits.netlify.app" }));
+app.use(cookieParser());
 app.use("/auth", Auth);
 app.use("/app", App);
-app.use("/user",User)
+app.use("/user", User);
 app.use("/mail", registerMail);
 mongoose
   .connect(

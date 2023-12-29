@@ -12,15 +12,30 @@ const getUser = async (req, res, next) => {
     ]);
     return res.status(200).json({ ...user._doc });
   } catch (err) {
-    return res.status(500).json({ msg: "Server Error", err });
+    return res.status(500).json({ msg: "Server Error for user details", err });
+  }
+};
+
+// Returns user Data after login
+// url >> /user/userData
+const userData = async (req, res, next) => {
+  try {
+    let user = await User.findById({ _id: req.body.uid }, [
+      "-password",
+      "-user_type",
+    ]);
+    return res.status(200).json({ ...user._doc });
+  } catch (err) {
+    return res.status(500).json({ msg: "Server Error for user details", err });
   }
 };
 
 // Returns user Data for profile
 // url >> /user/getUserById/:id
 const getUserById = async (req, res, next) => {
+  let id = req.params.id ? req.params.id : req.user.id;
   try {
-    let user = await User.findById({ _id: req.user.id }, [
+    let user = await User.findById({ _id: id }, [
       "_id",
       "firstName",
       "lastName",
@@ -33,7 +48,6 @@ const getUserById = async (req, res, next) => {
     return res.status(500).json({ msg: "Server Error", err });
   }
 };
-
 // Update user Profile
 // url >> /user/updateProfile
 const updateProfile = async (req, res, next) => {
@@ -115,13 +129,13 @@ const deleteUser = async (req, res, next) => {
   let user = null;
   let art = null;
   try {
-    user = await User.findByIdAndRemove(id);
-    art = await Art.findByIdAndRemove(id);
-    if (user && art) {
+    user = await User.deleteOne({ _id: id });
+    art = await Art.deleteMany({ user_id: id });
+    if (user || art) {
       return res.status(200).json({ msg: "deleted successfully" });
     }
   } catch (err) {
-    return res.status(400).json({ message: "Failed to Delete" });
+    return res.status(500).json({ message: "Failed to Delete" });
   }
 };
 
@@ -146,4 +160,5 @@ exports.func_user = {
   updateProfile,
   getUsers,
   getPostBy,
+  userData,
 };

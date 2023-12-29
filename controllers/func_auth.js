@@ -55,15 +55,8 @@ const login = async (req, res, next) => {
     }
     let compare = bcrypt.compareSync(password, user.password);
     if (compare) {
-      return res.status(200).json({
-        _id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        img: user.img,
-        token: generateToken(user._id),
-      });
+      const token = generateToken(user._id);
+      return res.status(200).json({ token });
     } else {
       return res.status(203).json({ msg: "Invalid Credentials!" });
     }

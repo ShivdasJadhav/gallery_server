@@ -24,6 +24,7 @@ const verifyToken = async (req, res, next) => {
           req.user = user;
           next();
         } else {
+          
           return res.status(203).json({ msg: "Not Authorized !" });
         }
       } else {
@@ -33,7 +34,7 @@ const verifyToken = async (req, res, next) => {
       return res.status(203).json({ msg: "Not Authorized !" });
     }
   } catch (err) {
-    return res.status(500).json({ msg: "server Error!", err });
+    return res.status(500).json({ msg: "server Error to authorize!", err });
   }
 };
 exports.common = { verifyToken };
