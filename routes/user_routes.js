@@ -4,7 +4,7 @@ const { func_user } = require("../controllers/func_user");
 const router = express.Router();
 
 router.get("/getUser", common.verifyToken, func_user.getUser);
-router.post("/userData",common.verifyToken, func_user.userData);
+router.post("/userInfo",common.verifyToken, func_user.userData);
 router.get("/getUserById/:id", common.verifyToken, func_user.getUserById);
 router.post("/updateProfile", common.verifyToken, func_user.updateProfile);
 router.get("/getUsers", common.verifyToken, func_user.getUsers);
